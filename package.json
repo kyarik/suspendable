@@ -1,0 +1,82 @@
+{
+  "name": "suspendable",
+  "version": "0.0.0",
+  "license": "MIT",
+  "description": "Utilities to create resources that can suspend in React",
+  "keywords": [
+    "suspendable",
+    "suspense",
+    "react",
+    "concurrent-mode",
+    "resource",
+    "jsresource"
+  ],
+  "homepage": "https://github.com/kyarik/suspendable#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyarik/suspendable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kyarik/suspendable/issues"
+  },
+  "author": "Yaroslav Kukytsyak",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist/suspendable.esm.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "coverage": "yarn test --coverage",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "typecheck": "yarn tsc --noEmit",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "dependencies": {
+    "circumspect": "^0.1.1"
+  },
+  "peerDependencies": {
+    "react": ">=16.6"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^4.9.0",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "husky": "^4.3.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "size-limit": "^4.9.0",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.0.3",
+    "typescript": "^4.1.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all"
+  },
+  "size-limit": [
+    {
+      "path": "dist/suspendable.cjs.production.min.js",
+      "limit": "3 KB"
+    },
+    {
+      "path": "dist/suspendable.esm.js",
+      "limit": "3 KB"
+    }
+  ]
+}
