@@ -24,6 +24,7 @@ npm install suspendable
 
 - [`lazyResource`](#lazyResource)
 - [`lazyComponent`](#lazyComponent)
+- [`Resource`](#Resource)
 - [`ResourceOptions`](#ResourceOptions)
 
 ### `lazyResource`
@@ -40,7 +41,7 @@ lazyResource<T>(loader: () => Promise<T>, options?: ResourceOptions): Resource<T
 
 **Return value**
 
-- `Resource<T>` a resource of type `T`.
+- `Resource<T>` a [resource](#Resource) of type `T`.
 
 **Description**
 
@@ -97,6 +98,25 @@ preloadLazyComponent(LazyWidget);
 // render it at any point
 return <LazyWidget {...widgetProps} />;
 ```
+
+### `Resource`
+
+```ts
+interface Resource<T> {
+  clearError: () => void;
+  get: () => T | null;
+  load: () => Promise<T>;
+  read: () => T;
+}
+```
+
+- `clearError: () => void` clears the error in case the resource failed to load. This allows to call the load method again and retry loading the resource. This method has no effect if the resource is still loading or if it already loaded successfully.
+
+- `get: () => T | null` returns the loaded resource or `null` if the resource is still loading, if it failed to load, or if it didn't even start loading yet.
+
+- `load: () => Promise<T>` begins loading the resource by calling the provided loader function. This method is idempotent - calling it after the first time has no effect. However, If the resource fails to load and `Resource#clearError()` is called, then calling this method will again begin loading the resource.
+
+- `read: () => T` returns the loaded resource. If the resource is still loading when this method is called, it will throw the resource promise, which will make the React component suspend and show the fallback of the nearest `<Suspense>` ancestor. If the resource failed to load, then this method will throw the error with which the promise rejected, causing the nearest error boundary ancestor to be hit. This method must be called inside a React component and it can only be called after the resource started loading with `Resource#load()`.
 
 ### `ResourceOptions`
 
