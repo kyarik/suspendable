@@ -4,7 +4,7 @@
 
 Suspendable resources are meant to be used with React [`<Suspense>`](https://reactjs.org/docs/concurrent-mode-suspense.html) (added in React 16.6) to decleratively wait while they're loading and show a fallback.
 
-When using a suspendable resource inside a React component, you can treat it as it already loaded - there's no need to check if it loaded or not yet because if it did not load when you try to use it, the React component will suspend and show the fallback of the nearest `<Suspense>` ancestor.
+When using a suspendable resource inside a React component, you can treat it as it already loaded - there's no need to check if it loaded or not because if it did not load when you try to use it, the React component will suspend and show the fallback of the nearest `<Suspense>` ancestor.
 
 ## Installation
 
@@ -83,7 +83,7 @@ lazyComponent<P>(loader: () => Promise<{ default: ComponentType<P> }>, options?:
 
 - `React.lazy` will start loading the component when it is rendered. There is no easy way to start loading it earlier. `lazyComponent` returns a lazy component that can start loading even before being rendered (by calling `preloadLazyComponent`).
 - `lazyComponent` accepts options that allow to auto-retry loading the component in case it fails to load the first time.
-- `React.lazy` will cache the promise returned by the loading function even if the promise rejects. So, it the component fails to load, there's no easy way to retry loading it. With `lazyComponent` this can be easily accomplished by calling `clearLazyComponentError` (or `clearResourceErrors`, which will clear errors for all resources that failed to load).
+- `React.lazy` will cache the promise returned by the loader function even if the promise rejects. So, it the component fails to load, there's no easy way to retry loading it. With `lazyComponent` this can be easily accomplished by calling `clearLazyComponentError` (or `clearResourceErrors`, which will clear errors for all resources that failed to load).
 
 **Example**
 
