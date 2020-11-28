@@ -23,7 +23,10 @@ npm install suspendable
 ## API
 
 - [`lazyResource`](#lazyResource)
+- [`clearResourceErrors`](#clearResourceErrors)
 - [`lazyComponent`](#lazyComponent)
+- [`preloadLazyComponent`](#preloadLazyComponent)
+- [`clearLazyComponentError`](#clearLazyComponentError)
 - [`Resource`](#Resource)
 - [`ResourceOptions`](#ResourceOptions)
 
@@ -58,6 +61,16 @@ resource.load();
 // read it inside a React component
 resource.read();
 ```
+
+### `clearResourceErrors`
+
+```ts
+clearResourceErrors(): void
+```
+
+**Description**
+
+`clearResourceErrors` clears the errors for all resources that failed to load. This means that all those resource can retry loading by calling the `Resource#load()` method.
 
 ### `lazyComponent`
 
@@ -99,6 +112,34 @@ preloadLazyComponent(LazyWidget);
 return <LazyWidget {...widgetProps} />;
 ```
 
+### `preloadLazyComponent`
+
+```ts
+preloadLazyComponent(LazyComponent: ComponentType<any>): void
+```
+
+**Parameters**
+
+- `LazyComponent` the lazy component returned by `lazyComponent` that we want to preload.
+
+**Description**
+
+`preloadLazyComponent` preloads a lazy component, i.e., starts loading the lazy component even before it is rendered. Good places where to start preloading a component are the router and event handlers. Under the hood, this function is just calling `Resource#load()` for the component resource, which means that it is idempotent - calling it after the first time has no effect. However, If the component fails to load and `clearLazyComponentError` is called (or `clearResourceErrors`), then calling this method will again begin loading the component.
+
+### `clearLazyComponentError`
+
+```ts
+clearLazyComponentError(LazyComponent: ComponentType<any>): void
+```
+
+**Parameters**
+
+- `LazyComponent` the lazy component returned by `lazyComponent` for which we want to clear the error.
+
+**Description**
+
+`clearLazyComponentError` clears the error for a lazy component that failed to load. This allows rendering the component again and calling `preloadLazyComponent` to retry loading the component. This function has no effect if the component is still loading or if it already loaded successfully.
+
 ### `Resource`
 
 ```ts
@@ -114,7 +155,7 @@ interface Resource<T> {
 
 - `get: () => T | null` returns the loaded resource or `null` if the resource is still loading, if it failed to load, or if it didn't even start loading yet.
 
-- `load: () => Promise<T>` begins loading the resource by calling the provided loader function. This method is idempotent - calling it after the first time has no effect. However, If the resource fails to load and `Resource#clearError()` is called, then calling this method will again begin loading the resource.
+- `load: () => Promise<T>` begins loading the resource by calling the provided loader function. This method is idempotent - calling it after the first time has no effect. However, If the resource fails to load and `Resource#clearError()` is called (or `clearResourceErrors`), then calling this method will again begin loading the resource.
 
 - `read: () => T` returns the loaded resource. If the resource is still loading when this method is called, it will throw the resource promise, which will make the React component suspend and show the fallback of the nearest `<Suspense>` ancestor. If the resource failed to load, then this method will throw the error with which the promise rejected, causing the nearest error boundary ancestor to be hit. This method must be called inside a React component and it can only be called after the resource started loading with `Resource#load()`.
 
