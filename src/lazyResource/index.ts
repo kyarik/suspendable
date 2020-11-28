@@ -76,6 +76,8 @@ export const lazyResource = <T>(
     if (error !== null) {
       promise = null;
       error = null;
+
+      resourcesWithError.delete(resource);
     }
   };
 
