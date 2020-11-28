@@ -4,6 +4,17 @@ import { autoRetryOnRejection } from '../utils/promise/autoRetryOnRejection';
 
 const resourcesWithError = new Set<Resource<unknown>>();
 
+/**
+ * Creates a lazy resource. It's lazy because it will not start loading the
+ * resource immediately. Instead, it will start loading it only when the `load`
+ * method is called. The resource can be read at any point inside a React
+ * component - if it has not loaded at the time it is called, the component
+ * will suspend.
+ * @param loader the loader function to load a resource of type `T`. This is a
+ *    regular function that returns a promise.
+ * @param options the resource options.
+ * @returns a resource of type `T`.
+ */
 export const lazyResource = <T>(
   loader: Loader<T>,
   options: ResourceOptions = {},
@@ -78,6 +89,10 @@ export const lazyResource = <T>(
   return resource;
 };
 
+/**
+ * Clears the errors for all resources that failed to load. This means that all
+ * those resource can retry loading by calling the `Resource#load` method.
+ */
 export const clearResourceErrors = () => {
   resourcesWithError.forEach(resource => resource.clearError());
 
