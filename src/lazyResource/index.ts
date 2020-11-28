@@ -19,7 +19,7 @@ export const lazyResource = <T>(
   loader: Loader<T>,
   options: ResourceOptions = {},
 ): Resource<T> => {
-  const { autoRetry = false, autoRetryTimeoutMs = 3000 } = options;
+  const { autoRetry = false, autoRetryTimeoutMs } = options;
 
   let promise: Promise<T> | null = null;
   let error: Error | null = null;
