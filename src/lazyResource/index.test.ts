@@ -128,6 +128,55 @@ describe('lazyResource', () => {
 
       expect(() => resource.read()).toThrow(error);
     });
+
+    it('allows the result to be null', async () => {
+      const promise = Promise.resolve(null);
+      const loader = jest.fn(() => promise);
+
+      const resource = lazyResource(loader);
+
+      await resource.load();
+
+      expect(resource.read()).toBe(null);
+    });
+
+    it('does not require the error to be an Error object', async () => {
+      expect.assertions(1);
+
+      const promise = Promise.reject(0);
+      const loader = jest.fn(() => promise);
+
+      const resource = lazyResource(loader);
+
+      try {
+        await resource.load();
+      } catch {}
+
+      try {
+        resource.read();
+      } catch (err) {
+        expect(err).toBe(0);
+      }
+    });
+
+    it('allows the error to be null', async () => {
+      expect.assertions(1);
+
+      const promise = Promise.reject(null);
+      const loader = jest.fn(() => promise);
+
+      const resource = lazyResource(loader);
+
+      try {
+        await resource.load();
+      } catch {}
+
+      try {
+        resource.read();
+      } catch (err) {
+        expect(err).toBe(null);
+      }
+    });
   });
 
   describe('load', () => {

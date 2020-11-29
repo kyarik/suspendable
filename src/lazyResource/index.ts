@@ -1,6 +1,12 @@
-import { invariant } from 'circumspect';
+import { assertNever, invariant } from 'circumspect';
 import { Loader, Resource, ResourceOptions } from '../types';
 import { autoRetryOnRejection } from '../utils/promise/autoRetryOnRejection';
+
+const enum State {
+  PENDING,
+  SUCCESS,
+  ERROR,
+}
 
 const resourcesWithError = new Set<Resource<unknown>>();
 
@@ -22,8 +28,9 @@ export const lazyResource = <T>(
   const { autoRetry = false, autoRetryTimeoutMs } = options;
 
   let promise: Promise<T> | null = null;
-  let error: Error | null = null;
+  let error: unknown = null;
   let result: T | null = null;
+  let state: State = State.PENDING;
 
   const getPromise = () => {
     if (autoRetry) {
@@ -38,11 +45,13 @@ export const lazyResource = <T>(
       promise = getPromise()
         .then(r => {
           result = r;
+          state = State.SUCCESS;
 
           return r;
         })
         .catch(err => {
           error = err;
+          state = State.ERROR;
 
           resourcesWithError.add(resource);
 
@@ -61,21 +70,23 @@ export const lazyResource = <T>(
       'You must start loading the resource with resource.load() before trying to read it with resource.read()',
     );
 
-    if (result !== null) {
-      return result;
+    switch (state) {
+      case State.SUCCESS:
+        return result as T;
+      case State.ERROR:
+        throw error;
+      case State.PENDING:
+        throw promise;
+      default:
+        return assertNever(state);
     }
-
-    if (error !== null) {
-      throw error;
-    }
-
-    throw promise;
   };
 
   const clearError = () => {
-    if (error !== null) {
+    if (state === State.ERROR) {
       promise = null;
       error = null;
+      state = State.PENDING;
 
       resourcesWithError.delete(resource);
     }
