@@ -376,23 +376,45 @@ describe('lazyResource', () => {
 
 describe('clearResourceErrors', () => {
   it('clears resource errors', async () => {
-    expect.assertions(3);
+    expect.assertions(6);
 
-    const { loader, error, result } = anErrorThenSuccessLoader();
+    const {
+      loader: loader1,
+      error: error1,
+      result: result1,
+    } = anErrorThenSuccessLoader();
 
-    const resource = lazyResource(loader);
+    const {
+      loader: loader2,
+      error: error2,
+      result: result2,
+    } = anErrorThenSuccessLoader();
+
+    const resource1 = lazyResource(loader1);
+    const resource2 = lazyResource(loader2);
 
     try {
-      await resource.load();
+      await resource1.load();
     } catch (err) {
-      expect(err).toBe(error);
+      expect(err).toBe(error1);
+    }
+
+    try {
+      await resource2.load();
+    } catch (err) {
+      expect(err).toBe(error2);
     }
 
     clearResourceErrors();
 
-    const value = await resource.load();
+    const value1 = await resource1.load();
 
-    expect(value).toBe(result);
-    expect(loader).toHaveBeenCalledTimes(2);
+    expect(value1).toBe(result1);
+    expect(loader1).toHaveBeenCalledTimes(2);
+
+    const value2 = await resource2.load();
+
+    expect(value2).toBe(result2);
+    expect(loader2).toHaveBeenCalledTimes(2);
   });
 });
