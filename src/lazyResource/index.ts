@@ -108,6 +108,4 @@ export const lazyResource = <T>(
  */
 export const clearResourceErrors = () => {
   resourcesWithError.forEach(resource => resource.clearError());
-
-  resourcesWithError.clear();
 };
