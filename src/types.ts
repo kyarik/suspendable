@@ -26,10 +26,10 @@ export interface Resource<T> {
    * method is called, it will throw the resource promise, which will make the
    * React component suspend and show the fallback of the nearest `<Suspense>`
    * ancestor. If the resource failed to load, then this method will throw the
-   * error with which the promise rejected, causing the nearest error boundary
-   * ancestor to be hit. This method must be called inside a React component
-   * and it can only be called after the resource started loading with
-   * `Resource#load()`.
+   * error with which the promise rejected, causing the fallback of nearest
+   * error boundary ancestor to be shown, if any. This method must be called
+   * inside a React component and it can only be called after the resource
+   * started loading with `Resource#load()`.
    */
   read: () => T;
 }
