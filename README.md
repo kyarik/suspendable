@@ -22,13 +22,13 @@ npm install suspendable
 
 ## API
 
-- [`lazyResource`](#lazyResource)
-- [`Resource`](#Resource)
-- [`ResourceOptions`](#ResourceOptions)
-- [`clearResourceErrors`](#clearResourceErrors)
-- [`lazyComponent`](#lazyComponent)
-- [`preloadLazyComponent`](#preloadLazyComponent)
-- [`clearLazyComponentError`](#clearLazyComponentError)
+- [`lazyResource`](#lazyresource)
+- [`Resource`](#resource)
+- [`ResourceOptions`](#resourceoptions)
+- [`clearResourceErrors`](#clearresourceerrors)
+- [`lazyComponent`](#lazycomponent)
+- [`preloadLazyComponent`](#preloadlazycomponent)
+- [`clearLazyComponentError`](#clearlazycomponenterror)
 
 ### `lazyResource`
 
@@ -40,11 +40,11 @@ lazyResource<T>(loader: () => Promise<T>, options?: ResourceOptions): Resource<T
 
 - `loader` is the loader function to load a resource of type `T`. This is a regular function that returns a promise.
 
-- `options?: ResourceOptions` are the [resource options](#ResourceOptions).
+- `options?: ResourceOptions` are the [resource options](#resourceoptions).
 
 **Return value**
 
-- `Resource<T>` a [resource](#Resource) of type `T`.
+- `Resource<T>` a [resource](#resource) of type `T`.
 
 **Description**
 
@@ -114,7 +114,7 @@ lazyComponent<P>(loader: () => Promise<{ default: ComponentType<P> }>, options?:
 
 - `loader` is the loader function to load a React component. This is a function that returns a dynamic import. The component should be the default export of the module that is dynamically imported.
 
-- `options?: ResourceOptions` are the [resource options](#ResourceOptions).
+- `options?: ResourceOptions` are the [resource options](#resourceoptions).
 
 **Return value**
 
