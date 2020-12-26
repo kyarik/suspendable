@@ -1,6 +1,6 @@
 {
   "name": "suspendable",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "description": "Utilities to create resources that can suspend in React",
   "keywords": [
