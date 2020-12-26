@@ -14,7 +14,7 @@ const resourcesWithError = new Set<Resource<unknown>>();
  * Creates a lazy resource. It's lazy because it will not start loading the
  * resource immediately. Instead, it will start loading it only when the `load`
  * method is called. The resource can be read at any point inside a React
- * component - if it has not loaded at the time it is called, the component
+ * component - if it has not loaded at the time it is read, the component
  * will suspend.
  * @param loader the loader function to load a resource of type `T`. This is a
  *    regular function that returns a promise.
