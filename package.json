@@ -44,7 +44,7 @@
     "circumspect": "^0.1.1"
   },
   "peerDependencies": {
-    "react": ">=16.6"
+    "react": ">=16.6.0"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.9.0",
@@ -72,11 +72,11 @@
   "size-limit": [
     {
       "path": "dist/suspendable.cjs.production.min.js",
-      "limit": "3 KB"
+      "limit": "600 B"
     },
     {
       "path": "dist/suspendable.esm.js",
-      "limit": "3 KB"
+      "limit": "600 B"
     }
   ]
 }
