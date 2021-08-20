@@ -128,7 +128,7 @@ lazyComponent<P>(loader: () => Promise<{ default: ComponentType<P> }>, options?:
 
 - `React.lazy` will start loading the component when it is rendered. There is no easy way to start loading it earlier. `lazyComponent` returns a lazy component that can start loading even before being rendered (by calling `preloadLazyComponent`).
 - `lazyComponent` accepts options that allow to auto-retry loading the component in case it fails to load the first time.
-- `React.lazy` will cache the promise returned by the loader function even if the promise rejects. So, it the component fails to load, there's no easy way to retry loading it. With `lazyComponent` this can be easily accomplished by calling `clearLazyComponentError` (or `clearResourceErrors`, which will clear errors for all resources that failed to load).
+- `React.lazy` will cache the promise returned by the loader function even if the promise rejects. So, if the component fails to load, there's no easy way to retry loading it. With `lazyComponent` this can be easily accomplished by calling `clearLazyComponentError` (or `clearResourceErrors`, which will clear errors for all resources that failed to load).
 
 **Example**
 
@@ -184,4 +184,4 @@ Please make sure to update the tests and the README as appropriate.
 
 ## License
 
-[MIT](https://github.com/kyarik/suspendable/blob/master/LICENSE)
+[MIT](https://github.com/kyarik/suspendable/blob/main/LICENSE)
