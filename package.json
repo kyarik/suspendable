@@ -1,8 +1,31 @@
 {
   "name": "suspendable",
   "version": "0.3.0",
-  "license": "MIT",
   "description": "Utilities to create resources that can suspend in React",
+  "author": "Yaroslav Kukytsyak",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "unpkg": "dist/suspendable.js",
+  "types": "dist/esm/index.d.ts",
+  "typesVersions": {
+    "<3.8": {
+      "dist/*": [
+        "dist/ts3.4/*"
+      ]
+    }
+  },
+  "homepage": "https://github.com/kyarik/suspendable#readme",
+  "bugs": {
+    "url": "https://github.com/kyarik/suspendable/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyarik/suspendable.git"
+  },
   "keywords": [
     "suspendable",
     "suspense",
@@ -11,72 +34,109 @@
     "resource",
     "jsresource"
   ],
-  "homepage": "https://github.com/kyarik/suspendable#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kyarik/suspendable.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kyarik/suspendable/issues"
-  },
-  "author": "Yaroslav Kukytsyak",
-  "files": [
-    "dist"
-  ],
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "module": "dist/suspendable.esm.js",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
+  "sideEffects": false,
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test",
-    "coverage": "yarn test --coverage",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
-    "typecheck": "yarn tsc --noEmit",
-    "size": "size-limit",
-    "analyze": "size-limit --why"
+    "api-types": "api-extractor run --local && rimraf ./temp",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --extensions \".ts,.tsx\" --ignore '**/*.test.ts','**/*.test.tsx' --out-dir dist/cjs",
+    "build:downlevel-dts": "downlevel-dts dist dist/ts3.4",
+    "build:esm": "babel src --extensions \".ts,.tsx\" --ignore '**/*.test.ts','**/*.test.tsx' --out-dir dist/esm",
+    "build:types": "tsc --project ./tsconfig.build.json",
+    "build:umd": "cross-env NODE_ENV=development rollup --config --configPlugin typescript -o dist/suspendable.js",
+    "build:umd:min": "cross-env NODE_ENV=production rollup --config --configPlugin typescript -o dist/suspendable.min.js",
+    "build": "rimraf dist && npm run build:types && yarn build:commonjs && yarn build:esm && yarn build:umd && yarn build:umd:min && npm run build:downlevel-dts",
+    "checks": "npm run typecheck && npm run lint && npm run prettier:check && npm run test:coverage && npm run test:integration",
+    "lint": "eslint .",
+    "prepare": "husky install && npm run build",
+    "prepublishOnly": ". ./checkBranch.sh && npm run checks",
+    "pretest:integration": "npm run build",
+    "prettier:check": "prettier --check .",
+    "prettier": "prettier --write --list-different .",
+    "release:prepare": ". ./check-branch.sh && standard-version",
+    "release:publish:github": ". ./check-branch.sh && conventional-github-releaser -p angular",
+    "release:publish:npm": "npm --silent whoami || npm login && npm publish",
+    "release:publish": "release:publish:github && npm run release:publish:npm",
+    "start": "jest --watch src",
+    "test:coverage": "jest --coverage src",
+    "test:integration": "jest integration-tests/index.test.ts",
+    "test": "jest src",
+    "typecheck:config": "tsc --project ./tsconfig.config.json",
+    "typecheck:source": "tsc --project ./tsconfig.source.json",
+    "typecheck:tests": "tsc --project ./tsconfig.tests.json",
+    "typecheck": "npm run typecheck:source && npm run typecheck:tests && npm run typecheck:config"
+  },
+  "standard-version": {
+    "scripts": {
+      "postchangelog": "npm run prettier -- --write CHANGELOG.md"
+    }
   },
   "dependencies": {
-    "circumspect": "^0.1.1"
+    "@babel/runtime": "7.15.3",
+    "circumspect": "0.1.1"
   },
   "peerDependencies": {
-    "react": ">=16.6.0"
+    "react": "^16.6.0 || ^17"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.9.0",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "husky": "^4.3.0",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "size-limit": "^4.9.0",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.0.3",
-    "typescript": "^4.1.3"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "all"
-  },
-  "size-limit": [
-    {
-      "path": "dist/suspendable.cjs.production.min.js",
-      "limit": "600 B"
-    },
-    {
-      "path": "dist/suspendable.esm.js",
-      "limit": "600 B"
-    }
-  ]
+    "@babel/cli": "7.14.8",
+    "@babel/core": "7.15.0",
+    "@babel/plugin-proposal-object-rest-spread": "7.14.7",
+    "@babel/plugin-transform-react-jsx": "7.14.9",
+    "@babel/plugin-transform-runtime": "7.15.0",
+    "@babel/preset-env": "7.15.0",
+    "@babel/preset-typescript": "7.15.0",
+    "@commitlint/cli": "13.1.0",
+    "@commitlint/config-conventional": "13.1.0",
+    "@jest/types": "27.0.6",
+    "@microsoft/api-extractor": "7.18.6",
+    "@rollup/plugin-babel": "5.3.0",
+    "@rollup/plugin-commonjs": "20.0.0",
+    "@rollup/plugin-node-resolve": "13.0.4",
+    "@rollup/plugin-replace": "3.0.0",
+    "@rollup/plugin-typescript": "8.2.5",
+    "@testing-library/jest-dom": "5.14.1",
+    "@testing-library/react": "12.0.0",
+    "@types/jest": "27.0.1",
+    "@types/node": "16.7.1",
+    "@types/react": "17.0.19",
+    "@types/react-dom": "17.0.9",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
+    "babel-plugin-dev-expression": "0.2.2",
+    "conventional-github-releaser": "3.1.5",
+    "cross-env": "7.0.3",
+    "downlevel-dts": "0.7.0",
+    "eslint": "7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-compat": "3.13.0",
+    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-react": "7.24.0",
+    "eslint-plugin-react-hooks": "4.2.0",
+    "eslint-plugin-testing-library": "4.11.0",
+    "husky": "7.0.1",
+    "jest": "27.0.6",
+    "prettier": "2.3.2",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-error-boundary": "3.1.3",
+    "react-test-renderer": "17.0.2",
+    "rimraf": "3.0.2",
+    "rollup": "2.56.3",
+    "rollup-plugin-terser": "7.0.2",
+    "standard-version": "9.3.1",
+    "ts-jest": "27.0.5",
+    "ts-node": "10.2.1",
+    "typescript": "4.3.5"
+  }
 }

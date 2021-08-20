@@ -1,11 +1,12 @@
-import React, { ComponentType } from 'react';
+import type { ComponentType } from 'react';
+import React from 'react';
 import { lazyResource } from '../lazyResource';
-import { Resource, ResourceOptions } from '../types';
+import type { Loader, Resource, ResourceOptions } from '../types';
 
-const componentResources = new WeakMap<
-  ComponentType<any>,
-  Resource<{ default: ComponentType<any> }>
->();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyComponent = ComponentType<any>;
+
+const componentResources = new WeakMap<AnyComponent, Resource<{ default: AnyComponent }>>();
 
 /**
  * Creates a lazy React component. It's lazy because it will not start loading
@@ -19,14 +20,17 @@ const componentResources = new WeakMap<
  * @param options the resource options.
  * @returns a lazy React component that accepts exactly the same props as the
  *    component being dynamically imported.
+ * @public
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const lazyComponent = <P extends {} = {}>(
-  loader: () => Promise<{ default: ComponentType<P> }>,
+  loader: Loader<{ default: ComponentType<P> }>,
   options?: ResourceOptions,
-) => {
+): ComponentType<P> => {
   const resource = lazyResource(loader, options);
 
-  const LazyComponent = (props: P) => {
+  const LazyComponent = (props: P): JSX.Element => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     resource.load();
 
     const { default: Component } = resource.read();
@@ -50,14 +54,16 @@ export const lazyComponent = <P extends {} = {}>(
  * the component.
  * @param LazyComponent the lazy component returned by `lazyComponent` that we
  *    want to preload.
+ * @public
  */
-export const preloadLazyComponent = (LazyComponent: ComponentType<any>) => {
+export const preloadLazyComponent = (LazyComponent: AnyComponent): void => {
   const resource = componentResources.get(LazyComponent);
 
   if (!resource) {
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   resource.load();
 };
 
@@ -68,8 +74,9 @@ export const preloadLazyComponent = (LazyComponent: ComponentType<any>) => {
  * loading or if it already loaded successfully.
  * @param LazyComponent the lazy component returned by `lazyComponent` for which
  *    we want to clear the error.
+ * @public
  */
-export const clearLazyComponentError = (LazyComponent: ComponentType<any>) => {
+export const clearLazyComponentError = (LazyComponent: AnyComponent): void => {
   const resource = componentResources.get(LazyComponent);
 
   if (!resource) {

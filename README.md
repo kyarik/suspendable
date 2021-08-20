@@ -1,5 +1,10 @@
 # suspendable
 
+<!-- [![Code Coverage Status](https://codecov.io/gh/kyarik/suspendable/branch/main/graph/badge.svg?token=ct9Fb3Z9Pw)](https://codecov.io/gh/kyarik/suspendable) -->
+
+[![CI Build Status](https://github.com/kyarik/suspendable/workflows/CI/badge.svg?branch=main)](https://github.com/kyarik/suspendable/actions?query=branch%3Amain)
+[![npm version](https://badge.fury.io/js/suspendable.svg)](https://badge.fury.io/js/suspendable)
+
 `suspendable` is a set of utilities to create resources that can suspend in React.
 
 Suspendable resources are meant to be used with React [`<Suspense>`](https://reactjs.org/docs/concurrent-mode-suspense.html) (added in React 16.6) to decleratively wait while they're loading and show a fallback.
@@ -53,7 +58,7 @@ lazyResource<T>(loader: () => Promise<T>, options?: ResourceOptions): Resource<T
 **Example**
 
 ```ts
-const resource = lazyResource(() => import('./data.json'), { autoRetry: true });
+const resource = lazyResource(() => import("./data.json"), { autoRetry: true });
 
 // start loading it at some point later
 resource.load();
@@ -133,7 +138,7 @@ lazyComponent<P>(loader: () => Promise<{ default: ComponentType<P> }>, options?:
 **Example**
 
 ```tsx
-const LazyWidget = lazyComponent(() => import('./components/Widget'), {
+const LazyWidget = lazyComponent(() => import("./components/Widget"), {
   autoRetry: true,
 });
 
@@ -178,9 +183,9 @@ This library was inspired by `JSResource` as defined [here](https://github.com/r
 
 ## Contributing
 
-Pull requests are very welcome. If you intend to introduce a major change, please open a related issue first in which we can discuss what you would like to change.
+Your contributions are very welcome! To get started, read our [contributing guidelines](https://github.com/kyarik/suspendable/blob/main/CONTRIBUTING.md).
 
-Please make sure to update the tests and the README as appropriate.
+Also check out existing issues labeled as <kbd>[help wanted](https://github.com/kyarik/suspendable/labels/help%20wanted)</kbd> or <kbd>[good first issue](https://github.com/kyarik/suspendable/labels/good%20first%20issue)</kbd>.
 
 ## License
 

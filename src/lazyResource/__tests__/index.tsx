@@ -1,6 +1,8 @@
-import { clearResourceErrors, lazyResource } from '.';
-
-beforeEach(() => jest.useFakeTimers());
+import React, { Suspense } from 'react';
+import { render, screen } from '@testing-library/react';
+import { clearResourceErrors, lazyResource } from '..';
+import type { Resource } from '../../types';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const aSuccessLoader = () => {
   const result = { success: true };
@@ -40,18 +42,21 @@ const anErrorThenSuccessLoader = () => {
   };
 };
 
+jest.useFakeTimers();
+
 describe('lazyResource', () => {
   describe('get', () => {
-    it('returns null while the resource has not loaded', async () => {
+    it('returns null while the resource has not loaded', () => {
       const { loader } = aSuccessLoader();
 
       const resource = lazyResource(loader);
 
-      expect(resource.get()).toBe(null);
+      expect(resource.get()).toBeNull();
 
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       resource.load();
 
-      expect(resource.get()).toBe(null);
+      expect(resource.get()).toBeNull();
     });
 
     it('returns the result when the resource loaded', async () => {
@@ -73,12 +78,12 @@ describe('lazyResource', () => {
         await resource.load();
       } catch {}
 
-      expect(resource.get()).toBe(null);
+      expect(resource.get()).toBeNull();
     });
   });
 
   describe('read', () => {
-    it('throws an invariant violation error if called before the resource starts loading', async () => {
+    it('throws an invariant violation error if called before the resource starts loading', () => {
       const { loader } = aSuccessLoader();
 
       const resource = lazyResource(loader);
@@ -88,19 +93,19 @@ describe('lazyResource', () => {
       );
     });
 
-    it('throws the resource promise while the resource is loading', async () => {
+    it('throws the resource promise while the resource is loading', () => {
       const { loader } = aSuccessLoader();
 
       const resource = lazyResource(loader);
 
       const promise = resource.load();
 
-      // toThrow does not work with promises
-      let thrownValue: unknown = null;
+      // The following is needed because toThrow does not work with promises
+      let thrownValue: unknown;
 
       try {
         resource.read();
-      } catch (value) {
+      } catch (value: unknown) {
         thrownValue = value;
       }
 
@@ -137,12 +142,11 @@ describe('lazyResource', () => {
 
       await resource.load();
 
-      expect(resource.read()).toBe(null);
+      expect(resource.read()).toBeNull();
     });
 
     it('does not require the error to be an Error object', async () => {
-      expect.assertions(1);
-
+      // eslint-disable-next-line prefer-promise-reject-errors
       const promise = Promise.reject(0);
       const loader = jest.fn(() => promise);
 
@@ -152,16 +156,19 @@ describe('lazyResource', () => {
         await resource.load();
       } catch {}
 
+      let thrownValue: unknown;
+
       try {
         resource.read();
-      } catch (err) {
-        expect(err).toBe(0);
+      } catch (value: unknown) {
+        thrownValue = value;
       }
+
+      expect(thrownValue).toBe(0);
     });
 
     it('allows the error to be null', async () => {
-      expect.assertions(1);
-
+      // eslint-disable-next-line prefer-promise-reject-errors
       const promise = Promise.reject(null);
       const loader = jest.fn(() => promise);
 
@@ -171,20 +178,25 @@ describe('lazyResource', () => {
         await resource.load();
       } catch {}
 
+      let thrownValue: unknown;
+
       try {
         resource.read();
-      } catch (err) {
-        expect(err).toBe(null);
+      } catch (value: unknown) {
+        thrownValue = value;
       }
+
+      expect(thrownValue).toBeNull();
     });
   });
 
   describe('load', () => {
-    it('calls the loader', async () => {
+    it('calls the loader', () => {
       const { loader } = aSuccessLoader();
 
       const resource = lazyResource(loader);
 
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       resource.load();
 
       expect(loader).toHaveBeenCalledTimes(1);
@@ -203,20 +215,14 @@ describe('lazyResource', () => {
     });
 
     it('returns a promise that rejects with the rejection error if the loader promise rejects', async () => {
-      expect.assertions(1);
-
       const { loader, error } = anErrorLoader();
 
       const resource = lazyResource(loader);
 
-      try {
-        await resource.load();
-      } catch (err) {
-        expect(err).toBe(error);
-      }
+      await expect(resource.load()).rejects.toBe(error);
     });
 
-    it('calls the loader one time even if called multiple times', async () => {
+    it('calls the loader one time even if called multiple times', () => {
       const { loader } = aSuccessLoader();
 
       const resource = lazyResource(loader);
@@ -328,11 +334,7 @@ describe('lazyResource', () => {
 
       resource.clearError();
 
-      try {
-        await resource.load();
-      } catch (err) {
-        expect(err).toBe(error);
-      }
+      await expect(resource.load()).rejects.toBe(error);
     });
 
     it('has no effect after the resource loaded successfully', async () => {
@@ -352,17 +354,11 @@ describe('lazyResource', () => {
     });
 
     it('clears the error if called after the resource failed to load', async () => {
-      expect.assertions(3);
-
       const { loader, error, result } = anErrorThenSuccessLoader();
 
       const resource = lazyResource(loader);
 
-      try {
-        await resource.load();
-      } catch (err) {
-        expect(err).toBe(error);
-      }
+      await expect(resource.load()).rejects.toBe(error);
 
       resource.clearError();
 
@@ -376,34 +372,14 @@ describe('lazyResource', () => {
 
 describe('clearResourceErrors', () => {
   it('clears resource errors', async () => {
-    expect.assertions(6);
-
-    const {
-      loader: loader1,
-      error: error1,
-      result: result1,
-    } = anErrorThenSuccessLoader();
-
-    const {
-      loader: loader2,
-      error: error2,
-      result: result2,
-    } = anErrorThenSuccessLoader();
+    const { loader: loader1, error: error1, result: result1 } = anErrorThenSuccessLoader();
+    const { loader: loader2, error: error2, result: result2 } = anErrorThenSuccessLoader();
 
     const resource1 = lazyResource(loader1);
     const resource2 = lazyResource(loader2);
 
-    try {
-      await resource1.load();
-    } catch (err) {
-      expect(err).toBe(error1);
-    }
-
-    try {
-      await resource2.load();
-    } catch (err) {
-      expect(err).toBe(error2);
-    }
+    await expect(resource1.load()).rejects.toBe(error1);
+    await expect(resource2.load()).rejects.toBe(error2);
 
     clearResourceErrors();
 
@@ -416,5 +392,75 @@ describe('clearResourceErrors', () => {
 
     expect(value2).toBe(result2);
     expect(loader2).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('Usage with React', () => {
+  const ResourceConsumer = ({
+    resource,
+  }: {
+    resource: Resource<{ success: boolean }>;
+  }): JSX.Element => {
+    const result = resource.read();
+
+    return result.success ? <p>Success</p> : <p>Failure</p>;
+  };
+
+  it('causes a component that tries to read a resource that is loading to suspend', () => {
+    const { loader } = aSuccessLoader();
+
+    const resource = lazyResource(loader);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    resource.load();
+
+    render(
+      <Suspense fallback="Loading...">
+        <ResourceConsumer resource={resource} />
+      </Suspense>,
+    );
+
+    expect(screen.queryByText('Loading...')).not.toBeNull();
+  });
+
+  it('allows a component to read a resource that has loaded', async () => {
+    const { loader } = aSuccessLoader();
+
+    const resource = lazyResource(loader);
+
+    await resource.load();
+
+    render(
+      <Suspense fallback="Loading...">
+        <ResourceConsumer resource={resource} />
+      </Suspense>,
+    );
+
+    expect(screen.queryByText('Success')).not.toBeNull();
+  });
+
+  it('causes a component to throw when it tries to read a resource that failed to load', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation();
+
+    const { error, loader } = anErrorLoader();
+
+    const resource = lazyResource(loader);
+
+    try {
+      await resource.load();
+    } catch {}
+
+    render(
+      // eslint-disable-next-line react/jsx-no-bind
+      <ErrorBoundary fallbackRender={(props) => <p>{props.error.message}</p>}>
+        <Suspense fallback="Loading...">
+          <ResourceConsumer resource={resource} />
+        </Suspense>
+      </ErrorBoundary>,
+    );
+
+    expect(screen.queryByText(error.message)).not.toBeNull();
+
+    spy.mockRestore();
   });
 });

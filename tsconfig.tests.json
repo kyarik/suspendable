@@ -6,5 +6,5 @@
     "types": ["jest", "node"]
   },
   "exclude": ["integration-tests/typescript/index.ts"],
-  "include": ["integration-tests", "src", "*.js", "*.ts", ".babelrc.js", ".eslintrc.js"]
+  "include": ["integration-tests", "src/**/__tests__", "src/**/*.test.*"]
 }

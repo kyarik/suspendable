@@ -1,0 +1,148 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+env:
+  NODE_VERSION: 16
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run prettier:check
+
+  checkForCommonlyIgnoredFiles:
+    name: Check for commonly ignored files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Check if commit contains files that should be ignored
+        run: |
+          git clone --depth 1 https://github.com/github/gitignore.git &&
+          cat gitignore/Node.gitignore $(find gitignore/Global -name "*.gitignore" | grep -v ModelSim) > all.gitignore &&
+          if  [[ "$(git ls-files -iX all.gitignore)" != "" ]]; then
+            echo "::error::Please remove these files:"
+            git ls-files -iX all.gitignore
+            exit 1
+          fi
+
+  checkPackageLock:
+    name: Check package-lock.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Regenerate package-lock.json
+        run: npm install --package-lock-only --engine-strict --strict-peer-deps --ignore-scripts
+
+      - name: Check that package-lock.json is up to date
+        run: git diff --exit-code package-lock.json
+
+  test:
+    name: Tests on Node v${{ matrix.node_versions }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_versions: [12, 14, 16]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS v${{ matrix.node_versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node_versions }}
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm run test
+
+  codeCoverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Coverage
+        run: npm run test:coverage
+
+  integrationTests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm run test:integration

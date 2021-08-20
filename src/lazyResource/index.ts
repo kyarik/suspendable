@@ -1,12 +1,8 @@
 import { assertNever, invariant } from 'circumspect';
-import { Loader, Resource, ResourceOptions } from '../types';
+import type { Loader, Resource, ResourceOptions } from '../types';
 import { autoRetryOnRejection } from '../utils/promise/autoRetryOnRejection';
 
-const enum State {
-  PENDING,
-  SUCCESS,
-  ERROR,
-}
+type State = 'error' | 'pending' | 'success';
 
 const resourcesWithError = new Set<Resource<unknown>>();
 
@@ -20,19 +16,17 @@ const resourcesWithError = new Set<Resource<unknown>>();
  *    regular function that returns a promise.
  * @param options the resource options.
  * @returns a resource of type `T`.
+ * @public
  */
-export const lazyResource = <T>(
-  loader: Loader<T>,
-  options: ResourceOptions = {},
-): Resource<T> => {
+export const lazyResource = <T>(loader: Loader<T>, options: ResourceOptions = {}): Resource<T> => {
   const { autoRetry = false, autoRetryTimeoutMs } = options;
 
   let promise: Promise<T> | null = null;
   let error: unknown = null;
   let result: T | null = null;
-  let state: State = State.PENDING;
+  let state: State = 'pending';
 
-  const getPromise = () => {
+  const getPromise = (): Promise<T> => {
     if (autoRetry) {
       return autoRetryOnRejection(loader, { timeoutMs: autoRetryTimeoutMs });
     }
@@ -40,53 +34,55 @@ export const lazyResource = <T>(
     return loader();
   };
 
-  const load = () => {
+  const load = (): Promise<T> => {
     if (!promise) {
       promise = getPromise()
-        .then(r => {
-          result = r;
-          state = State.SUCCESS;
+        .then((value) => {
+          result = value;
+          state = 'success';
 
-          return r;
+          return value;
         })
-        .catch(err => {
-          error = err;
-          state = State.ERROR;
+        .catch((reason) => {
+          error = reason;
+          state = 'error';
 
           resourcesWithError.add(resource);
 
-          throw err;
+          throw reason;
         });
     }
 
     return promise;
   };
 
-  const get = () => result;
+  const get = (): T | null => result;
 
-  const read = () => {
+  const read = (): T => {
     invariant(
       promise,
       'You must start loading the resource with resource.load() before trying to read it with resource.read()',
     );
 
     switch (state) {
-      case State.SUCCESS:
+      case 'success':
         return result as T;
-      case State.ERROR:
+      case 'error':
         throw error;
-      case State.PENDING:
+      case 'pending':
+        // eslint-disable-next-line @typescript-eslint/no-throw-literal
         throw promise;
+      /* istanbul ignore next: unreachable default case */
       default:
         return assertNever(state);
     }
   };
 
-  const clearError = () => {
-    if (state === State.ERROR) {
+  const clearError = (): void => {
+    if (state === 'error') {
       promise = null;
       error = null;
-      state = State.PENDING;
+      state = 'pending';
 
       resourcesWithError.delete(resource);
     }
@@ -105,7 +101,10 @@ export const lazyResource = <T>(
 /**
  * Clears the errors for all resources that failed to load. This means that all
  * those resource can retry loading by calling the `Resource#load` method.
+ * @public
  */
-export const clearResourceErrors = () => {
-  resourcesWithError.forEach(resource => resource.clearError());
+export const clearResourceErrors = (): void => {
+  resourcesWithError.forEach((resource) => {
+    resource.clearError();
+  });
 };

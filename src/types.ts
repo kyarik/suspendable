@@ -1,3 +1,4 @@
+/** @public */
 export interface Resource<T> {
   /**
    * Clears the error in case the resource failed to load. This allows to call
@@ -34,8 +35,10 @@ export interface Resource<T> {
   read: () => T;
 }
 
+/** @public */
 export type Loader<T> = () => Promise<T>;
 
+/** @public */
 export interface ResourceOptions {
   /**
    * Specifies whether to retry loading the resource if it fails to load the
